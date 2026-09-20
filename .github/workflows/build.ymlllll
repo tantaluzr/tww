@@ -1,0 +1,42 @@
+name: Build Wind Waker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v4
+
+      - name: Install requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build python3
+
+      - name: Check for game image
+        run: |
+          if [ ! -f "orig/GZLE01" ]; then
+            echo "Missing orig/GZLE01"
+            echo "You must provide your own legally obtained game image."
+            exit 1
+          fi
+
+      - name: Configure project
+        run: python3 configure.py
+
+      - name: Build project
+        run: ninja
+
+      - name: Package build
+        run: |
+          mkdir output
+          cp -r build/GZLE01 output/
+
+      - name: Upload GameCube build
+        uses: actions/upload-artifact@v4
+        with:
+          name: wind-waker-gamecube-build
+          path: output/
